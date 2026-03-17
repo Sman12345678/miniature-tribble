@@ -287,6 +287,23 @@ def chats():
             c.execute('SELECT * FROM messages WHERE chat_id = ? ORDER BY created_at DESC LIMIT 1', (chat['id'],))
             last_msg = c.fetchone()
             
+            # FIX: Handle empty/invalid content safely
+            last_message_data = None
+            if last_msg:
+                try:
+                    content = last_msg['content']
+                    # Content is plain text, not JSON - use directly
+                    last_message_data = {
+                        'id': last_msg['id'],
+                        'content': content,
+                        'senderId': last_msg['sender_id'],
+                        'type': last_msg['type'],
+                        'createdAt': last_msg['created_at']
+                    }
+                except Exception as e:
+                    print(f"Error processing last message: {e}")
+                    last_message_data = None
+            
             result.append({
                 'id': chat['id'],
                 'type': chat['type'],
@@ -296,7 +313,7 @@ def chats():
                 'unreadCount': chat['unread_count'],
                 'isMuted': bool(chat['is_muted']),
                 'muteUntil': chat['mute_until'],
-                'lastMessage': json.loads(last_msg['content']) if last_msg else None,
+                'lastMessage': last_message_data,
                 'createdAt': chat['created_at'],
                 'updatedAt': chat['updated_at']
             })
