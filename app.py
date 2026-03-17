@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*")
 
 DATABASE = 'chatflow.db'
 
